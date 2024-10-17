@@ -5,7 +5,6 @@ import com.amalie.thymeleaf.touristguide.model.TouristAttraction;
 import com.amalie.thymeleaf.touristguide.model.TouristAttractionTagDTO;
 import com.amalie.thymeleaf.touristguide.repository.CurrencyService;
 import com.amalie.thymeleaf.touristguide.service.TouristService;
-import net.bytebuddy.dynamic.TypeResolutionStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(TouristController.class) //vi vil kun teste en controller
 class TouristControllerTest {
 
-    private TouristAttraction touristAttraction = new TouristAttraction();
     private TouristAttractionTagDTO touristAttractionTagDTO = new TouristAttractionTagDTO();
 
     @Autowired //spring instantierer selv objekt

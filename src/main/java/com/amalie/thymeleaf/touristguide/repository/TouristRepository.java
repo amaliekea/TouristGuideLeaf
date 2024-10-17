@@ -268,5 +268,19 @@ public class TouristRepository {
         deleteDTOAttraction(dto.getTourist_id());
         saveDTOAttraction(dto);
     }
+    public void setDbUrl(String dbUrl) {
+        this.dbUrl = dbUrl;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    protected Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(dbUrl, username, password);
+    }
 
 }
