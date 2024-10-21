@@ -135,7 +135,7 @@ public class TouristRepository {
         List<TouristAttraction> attractions = new ArrayList<>();
         String sqlString = "SELECT * FROM touristattraction";
         try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
-             Statement statement = con.createStatement();
+            Statement statement = con.createStatement();
             ResultSet resultSet = statement.executeQuery(sqlString);
 
             while (resultSet.next()) {
@@ -158,7 +158,7 @@ public class TouristRepository {
         TouristAttraction touristAttraction = null;
 
         try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
-             PreparedStatement statement = con.prepareStatement(sqlString);
+            PreparedStatement statement = con.prepareStatement(sqlString);
 
             statement.setInt(1, id);
 
@@ -187,7 +187,7 @@ public class TouristRepository {
         String sqlStringTag = "DELETE FROM touristattraction_tag WHERE tourist_id = ?";
         String sqlString = "DELETE FROM touristattraction WHERE tourist_id = ?";
         try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
-             PreparedStatement statement2 = con.prepareStatement(sqlStringTag);
+            PreparedStatement statement2 = con.prepareStatement(sqlStringTag);
             statement2.setInt(1, id);
             statement2.executeUpdate();
 
@@ -247,7 +247,7 @@ public class TouristRepository {
         List<Tag> attractionTags = new ArrayList<>();
         String sqlString = "SELECT touristattraction_tag.tag_id, tag.tag_name FROM touristattraction_tag, tag WHERE touristattraction_tag.tag_id = tag.tag_id AND touristattraction_tag.tourist_id = ?";
         try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
-             PreparedStatement statement = con.prepareStatement(sqlString);
+            PreparedStatement statement = con.prepareStatement(sqlString);
             statement.setInt(1, t.getTourist_id());
             ResultSet resultSet = statement.executeQuery();
 
