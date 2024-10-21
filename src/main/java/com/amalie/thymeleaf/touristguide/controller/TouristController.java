@@ -1,13 +1,12 @@
 package com.amalie.thymeleaf.touristguide.controller;
-
-import com.amalie.thymeleaf.touristguide.model.Tag;
 import com.amalie.thymeleaf.touristguide.model.TouristAttraction;
+import com.amalie.thymeleaf.touristguide.model.TouristAttractionTagDTO;
 import com.amalie.thymeleaf.touristguide.service.TouristService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.Arrays;
+
 import java.util.List;
 
 @Controller
@@ -15,16 +14,17 @@ import java.util.List;
 public class TouristController {
     private final TouristService touristService;
 
-    public TouristController() {
-        touristService = new TouristService(); //vi inistaniserer
+    public TouristController(TouristService touristService) {
+        this.touristService = touristService; //vi inistaniserer
     }
 
     @GetMapping("/attractions")
     public String getAttractions(@RequestParam(defaultValue = "EUR") String valuta, Model model) { // model bruger spring til at kommunikere med th
-        List<TouristAttraction> touristAttractions = touristService.getAllAttractions();
+        List<TouristAttractionTagDTO> touristAttractions = touristService.getAllDTOAttractions();
         model.addAttribute("attractions", touristAttractions); //sender med som argument
+        model.addAttribute("cities", touristService.getCities());
         model.addAttribute("valuta", valuta);
-        return "attractionList"; // alt ovenstående sendes videre til vores view
+        return "attractionList";
     }
 
     @PostMapping("/attractions")
@@ -36,9 +36,9 @@ public class TouristController {
         return "redirect:/attractions";
     }
 
-    @GetMapping("/attractions/{name}/tags")
-    public String getAttractionTags(@PathVariable String name, Model model) { //pathvariable fordi den kommer fra url path
-        TouristAttraction t = touristService.getAttractionByName(name);
+    @GetMapping("/attractions/{id}/tags")
+    public String getAttractionTags(@PathVariable int id, Model model) { //pathvariable fordi den kommer fra url path
+        TouristAttraction t = touristService.getAttractionById(id);
         model.addAttribute("attraction", t);
         model.addAttribute("tags", touristService.getTags(t));
         return "showTags";
@@ -46,42 +46,39 @@ public class TouristController {
 
     @GetMapping("/add")
     public String addAttraction(Model model) {
-        TouristAttraction t = new TouristAttraction();
-        model.addAttribute("attraction", t);
-        model.addAttribute("availableTags", Arrays.asList(Tag.values()));
-        model.addAttribute("name", t.getName());
-        model.addAttribute("description", t.getDescription());
-        model.addAttribute("city", touristService.getCities());
+        TouristAttractionTagDTO tagDTO = new TouristAttractionTagDTO();
+        model.addAttribute("dto", tagDTO);
+        model.addAttribute("availableTags", touristService.getAvaliableTags());
+        model.addAttribute("cities", touristService.getCities());
         return "addAttraction";
     }
 
     @PostMapping("/save")
-    public String addAttraction(@ModelAttribute TouristAttraction touristAttraction, Model model) throws Exception{
-        touristService.saveAttraction(touristAttraction);
-        model.addAttribute("attraction", touristAttraction);
+    public String addAttraction(@ModelAttribute TouristAttractionTagDTO dto, Model model) throws Exception {
+        touristService.saveDTOAttraction(dto);
         return "redirect:/attractions";
-
     }
 
-    @GetMapping("/{name}/edit")
-    public String editAttraction(@PathVariable String name, Model model) {
-        TouristAttraction t = touristService.getAttractionByName(name);
+    @GetMapping("/{id}/edit")
+    public String editAttraction(@PathVariable int id, Model model) {
+        TouristAttractionTagDTO t = touristService.getDTOAttractionById(id);
         model.addAttribute("attraction", t);
-        model.addAttribute("city", touristService.getCities());
+        model.addAttribute("cities", touristService.getCities());
         model.addAttribute("description", t.getDescription());
-        model.addAttribute("availableTags", Tag.values());
+        model.addAttribute("availableTags", touristService.getAvaliableTags());
         return "editAttraction";
     }
 
     @PostMapping("/update")
-    public String editAttraction(@ModelAttribute TouristAttraction touristAttraction) {
-        touristService.updateAttraction(touristAttraction);
+    public String editAttraction(@ModelAttribute TouristAttractionTagDTO dto) {
+        touristService.updateAttraction(dto);
         return "redirect:/attractions"; //redirect: sig til klienten bed om denne side
     }
 
-    @PostMapping("/delete/{name}")
-    public String deleteAttraction(@ModelAttribute TouristAttraction touristAttraction) {
-        touristService.deleteAttraction(touristAttraction.getName());
+
+    @PostMapping("/delete")
+    public String deleteAttraction(@RequestParam int id) {
+        touristService.deleteDTOAttraction(id);
         return "redirect:/attractions";
     }
 

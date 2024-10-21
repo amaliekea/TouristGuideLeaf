@@ -1,13 +1,12 @@
 package com.amalie.thymeleaf.touristguide.model;
 
-//he
-public class Tag {
+public class City {
     private String name;
-    private int id;
+    private int cityId;
 
-    public Tag(String name, int id) {
+    public City(String name, int cityId) {
         this.name = name;
-        this.id = id;
+        this.cityId = cityId;
     }
 
     public String getName() {
@@ -18,19 +17,18 @@ public class Tag {
         this.name = name;
     }
 
-    public int getId() {
-        return id;
+    public int getCityId() {
+        return cityId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setCityId(int cityId) {
+        this.cityId = cityId;
     }
-
     @Override
     public String toString() {
-        return "Tag{" +
+        return "City{" +
                 "name='" + name + '\'' +
-                ", id=" + id +
+                ", cityId=" + cityId +
                 '}';
     }
 }

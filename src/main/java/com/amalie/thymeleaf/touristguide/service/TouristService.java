@@ -1,52 +1,58 @@
 package com.amalie.thymeleaf.touristguide.service;
 
+import com.amalie.thymeleaf.touristguide.model.City;
 import com.amalie.thymeleaf.touristguide.model.Tag;
 import com.amalie.thymeleaf.touristguide.model.TouristAttraction;
+import com.amalie.thymeleaf.touristguide.model.TouristAttractionTagDTO;
 import com.amalie.thymeleaf.touristguide.repository.TouristRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
+
 @Service
 public class TouristService {
-    TouristRepository touristRepository;
 
-    public TouristService() {
-        touristRepository = new TouristRepository();
+    private final TouristRepository touristRepository;
+
+    public TouristService(TouristRepository touristRepository) {
+        this.touristRepository=touristRepository;
     }
 
-    //CREATE
-    public void saveAttraction(TouristAttraction t) throws Exception {
-        touristRepository.saveAttraction(t);
+    public List<TouristAttractionTagDTO> getAllDTOAttractions() {
+        return touristRepository.getAllDTOAttractions();
     }
 
-    //READ
     public List<TouristAttraction> getAllAttractions() {
         return touristRepository.getAllAttractions();
     }
 
-    public TouristAttraction getAttractionByName(String name) {
-        return touristRepository.getAttractionByName(name);
+
+    public void deleteDTOAttraction(int id) {
+        touristRepository.deleteDTOAttraction(id);
     }
 
-    public void deleteAttraction(String name) {
-        touristRepository.deleteAttraction(name);
-    }
-
-    public List<String> getCities() {
+    public List<City> getCities() {
         return touristRepository.getCities();
+    }
+    public List<Tag> getAvaliableTags() {
+        return touristRepository.getAvaliableTags();
     }
     
     public List<Tag> getTags(TouristAttraction t) {
         return touristRepository.getTags(t);
     }
 
-    public void updateAttraction(TouristAttraction updatedAttraction) {
-        TouristAttraction existingAttraction = touristRepository.getAttractionByName(updatedAttraction.getName());
-        if (existingAttraction != null) {
-            existingAttraction.setDescription(updatedAttraction.getDescription());
-            existingAttraction.setCity(updatedAttraction.getCity());
-            existingAttraction.setTags(updatedAttraction.getTags());
-        }
+    public void updateAttraction(TouristAttractionTagDTO dto) {
+        touristRepository.updateAttraction(dto);
+    }
+    public void saveDTOAttraction(TouristAttractionTagDTO t) {
+        touristRepository.saveDTOAttraction(t);
+    }
+    public TouristAttraction getAttractionById(int id) {
+        return touristRepository.getAttractionById(id);
+    }
+    public TouristAttractionTagDTO getDTOAttractionById(int id) {
+        return touristRepository.getDTOAttractionById(id);
     }
 
 }

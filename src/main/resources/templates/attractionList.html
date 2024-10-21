@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
+<div th:insert="~{fragments/header :: header}"></div>
 <head>
     <meta charset="UTF-8">
     <link th:href="@{/main.css}" rel="stylesheet">
@@ -7,7 +8,6 @@
 </head>
 
 <body>
-<div th:replace="fragments/header :: header">...</div>
 <h1>All Attractions:</h1>
 <form th:action="@{/attractions}" method="post">
     <input type="hidden" name="valuta" value="EUR">
@@ -30,20 +30,22 @@
     <tr th:each="touristattraction : ${attractions}">
         <td th:text="${touristattraction.name}"></td>
         <td th:text="${touristattraction.description}"></td>
-        <td th:text="${touristattraction.city}"></td>
+        <td th:each="city : ${cities}"
+            th:if="${city.cityId} == ${touristattraction.cityId}"
+            th:text="${city.name}"></td>
         <td th:text="${touristattraction.getPrice(valuta)}"></td>
         <td>
-            <form th:action="@{ ${touristattraction.name} + '/edit'}" method="get">
+            <form th:action="@{ ${touristattraction.tourist_id} + '/edit'}" method="get">
                 <button type="submit">Edit</button>
             </form>
         </td>
         <td> <!--Modificer action endpoint-->
-            <form th:action="@{/delete/{name}(name=${touristattraction.name})}" method="post">
+            <form th:action="@{/delete (id=${touristattraction.tourist_id})}" method="post">
                 <button type="submit">Delete</button>
             </form>
         </td>
         <td>
-            <form th:action="@{/attractions/{name}/tags(name=${touristattraction.name})}" method="get" target="_blank">
+            <form th:action="@{/attractions/{id}/tags(id=${touristattraction.tourist_id})}" method="get" target="_blank">
                 <button type="submit">Tags</button>
             </form>
         </td>

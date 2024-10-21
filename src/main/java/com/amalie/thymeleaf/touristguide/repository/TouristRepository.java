@@ -1,78 +1,286 @@
 package com.amalie.thymeleaf.touristguide.repository;
 
+import com.amalie.thymeleaf.touristguide.model.City;
 import com.amalie.thymeleaf.touristguide.model.Tag;
 import com.amalie.thymeleaf.touristguide.model.TouristAttraction;
+
+import com.amalie.thymeleaf.touristguide.model.TouristAttractionTagDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.*;
 import java.util.*;
 
-@Repository //annotation der fortæller spring, at denne klasse har ansvar for adgang til date
+@Repository //annotation der fortæller spring, at denne klasse har ansvar for adgang til data
 public class TouristRepository {
-    final private List<TouristAttraction> touristAttractions = new ArrayList<>(); //vi inistaniserer (ses ved new)
+    private static final Logger logger = LoggerFactory.getLogger(TouristRepository.class);
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String username;
+
+    @Value("${spring.datasource.password}")
+    private String password;
 
     public TouristRepository() {
-        TouristAttraction t1 = new TouristAttraction("Tivoli", "A amusement park", "Copenhagen", 100);
-        t1.setTags(Arrays.asList(Tag.FORLYSTELSE, Tag.BALLON));
-        TouristAttraction t2 = new TouristAttraction("Zoo", "A wildlife park, home to a wide variety of animals from around the world.", "Copenhagen");
-        t2.setTags(Arrays.asList(Tag.NATUR, Tag.NATUR));
-        Collections.addAll(touristAttractions, t1, t2);
+
     }
 
-    //CREATE
-    public void saveAttraction(TouristAttraction t) throws Exception { //paramettr inde i parantesen, parametreliste
-        for (TouristAttraction to : touristAttractions) {
-            if (to.getName().equals(t.getName())) {
-                throw new Exception("Name already added");
+    public List<TouristAttractionTagDTO> getAllDTOAttractions() {
+        List<TouristAttractionTagDTO> attractions = new ArrayList<>();
+        String sqlString = "SELECT name, tourist_id, description, prisDollar, cityId FROM touristattraction";
+        String sqlString2 = "SELECT tag_id FROM touristattraction_tag WHERE tourist_id = ?";
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+            Statement statement = con.createStatement();
+            ResultSet resultSet = statement.executeQuery(sqlString);
+
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                int tourist_id = resultSet.getInt("tourist_id");
+                String description = resultSet.getString("description");
+                double prisDollar = resultSet.getDouble("prisDollar");
+                int cityId = resultSet.getInt("cityId");
+
+                PreparedStatement statement2 = con.prepareStatement(sqlString2);
+                statement2.setInt(1, tourist_id);
+                ResultSet resultsetTags = statement2.executeQuery();
+                List<Integer> attractionTags = new ArrayList<>();
+
+
+                while (resultsetTags.next()) {
+                    attractionTags.add(resultsetTags.getInt("tag_id"));
+                }
+                TouristAttractionTagDTO dto = new TouristAttractionTagDTO(name, tourist_id, description, prisDollar, cityId, attractionTags);
+                attractions.add(dto);
             }
+
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
         }
-        touristAttractions.add(t);
+        return attractions;
+    }
+
+    public void saveDTOAttraction(TouristAttractionTagDTO t) {
+
+        String sqlString = "INSERT INTO touristattraction(name, description, prisDollar, cityId) VALUES(?,?,?,?)";
+        String sqlTags = "INSERT INTO touristattraction_tag(tourist_id, tag_id) VALUES(?,?)";
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+
+            PreparedStatement statement = con.prepareStatement(sqlString, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, t.getName());
+            statement.setString(2, t.getDescription());
+            statement.setDouble(3, t.getPrisDollar());
+            statement.setInt(4, t.getCityId());
+            System.out.println("SQL query: " + sqlString);
+            statement.executeUpdate();
+            ResultSet rs = statement.getGeneratedKeys();
+            if (rs.next()) {
+                int tourist_id = rs.getInt(1);
+
+
+                PreparedStatement statementTags = con.prepareStatement(sqlTags);
+                for (int tagId : t.getTagIds()) {
+                    statementTags.setInt(1, tourist_id);
+                    statementTags.setInt(2, tagId);
+                    statementTags.executeUpdate();
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
+            System.out.println(dbUrl + " " + username + " " + password);
+        }
 
     }
 
-    //READ
+    public TouristAttractionTagDTO getDTOAttractionById(int id) {
+        String sqlString = "SELECT name, description, prisDollar, tourist_id, cityId FROM touristattraction WHERE tourist_id = ?";
+        String sqlString2 = "SELECT tag_id FROM touristattraction_tag WHERE tourist_id = ?";
+        TouristAttractionTagDTO dto = new TouristAttractionTagDTO();
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+            PreparedStatement statement = con.prepareStatement(sqlString);
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+
+            if (resultSet.next()) {
+                String name = resultSet.getString("name");
+                int tourist_id = resultSet.getInt("tourist_id");
+                String description = resultSet.getString("description");
+                double prisDollar = resultSet.getDouble("prisDollar");
+                int cityId = resultSet.getInt("cityId");
+
+                PreparedStatement statement2 = con.prepareStatement(sqlString2);
+                statement2.setInt(1, id);
+                ResultSet resultsetTags = statement2.executeQuery();
+
+                List<Integer> attractionTags = new ArrayList<>();
+                while (resultsetTags.next()) {
+                    attractionTags.add(resultsetTags.getInt("tag_id"));
+                }
+                dto = new TouristAttractionTagDTO(name, tourist_id, description, prisDollar, cityId, attractionTags);
+            }
+
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
+        }
+        return dto;
+    }
+
     public List<TouristAttraction> getAllAttractions() {
-        return touristAttractions;
-    }
+        List<TouristAttraction> attractions = new ArrayList<>();
+        String sqlString = "SELECT * FROM touristattraction";
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+            Statement statement = con.createStatement();
+            ResultSet resultSet = statement.executeQuery(sqlString);
 
-    public TouristAttraction getAttractionByName(String name) {
-        for (TouristAttraction t : touristAttractions) {
-            if (t.getName().equals(name)) {
-                return t;
+            while (resultSet.next()) {
+                String tname = resultSet.getString("name");
+                String description = resultSet.getString("description");
+                double pris = resultSet.getDouble("prisDollar");
+                int cityid = resultSet.getInt("cityId");
+                attractions.add(new TouristAttraction(tname, description, pris, cityid));
             }
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
         }
-        return null;
+
+        return attractions;
     }
 
-    public void deleteAttraction(String name) {
-        Iterator<TouristAttraction> iterator = touristAttractions.iterator(); //opretter iterator på touristattraction samling
-        while (iterator.hasNext()) { //så længe der er flere elementer i samling
-            TouristAttraction t = iterator.next(); //henter det næste element fra samling
-            if (t.getName().equals(name)) {
-                iterator.remove(); // Brug iterator til sikker fjernelse
-                break;
+
+    public TouristAttraction getAttractionById(int id) {
+        String sqlString = "SELECT t.name, t.description, t.prisDollar, t.tourist_id, t.cityId FROM touristattraction t  WHERE t.tourist_id = ?";
+        TouristAttraction touristAttraction = null;
+
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+            PreparedStatement statement = con.prepareStatement(sqlString);
+
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            // Hvis der findes en attraktion med det navn, opret et Java TouristAttraction-objekt
+            if (resultSet.next()) {
+                String attractionName = resultSet.getString("name");
+                String description = resultSet.getString("description");
+                double pris = resultSet.getDouble("prisDollar");
+                int touristId = resultSet.getInt("tourist_id");
+                int cityId = resultSet.getInt("cityId");
+
+                touristAttraction = new TouristAttraction(attractionName, description, pris, touristId, cityId);
             }
+
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
+        }
+
+        return touristAttraction;
+    }
+
+
+    public void deleteDTOAttraction(int id) {
+        String sqlStringTag = "DELETE FROM touristattraction_tag WHERE tourist_id = ?";
+        String sqlString = "DELETE FROM touristattraction WHERE tourist_id = ?";
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+            PreparedStatement statement2 = con.prepareStatement(sqlStringTag);
+            statement2.setInt(1, id);
+            statement2.executeUpdate();
+
+            PreparedStatement statement = con.prepareStatement(sqlString);
+            statement.setInt(1, id);
+            statement.executeUpdate();
+
+
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
         }
     }
 
 
-    public List<String> getCities() {
-        List<String> citites = new ArrayList<>();
-        Collections.addAll(citites, "Roskilde", "Copenhagen", "Herning", "Holstebro", "Aarhus");
-        return citites;
+    public List<City> getCities() {
+        List<City> cities = new ArrayList<>();
+        String sqlString = "SELECT * FROM city";
+        System.out.println(dbUrl + " " + username + " "+ password);
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+
+            Statement statement = con.createStatement();
+            ResultSet resultSet = statement.executeQuery(sqlString);
+
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                int cityid = resultSet.getInt("cityId");
+                cities.add(new City(name, cityid));
+            }
+
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
+        }
+        return cities;
+    }
+
+    public List<Tag> getAvaliableTags() {
+        List<Tag> avaliableTags = new ArrayList<>();
+        String sqlString = "SELECT * FROM tag";
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+
+            Statement statement = con.createStatement();
+            ResultSet resultSet = statement.executeQuery(sqlString);
+
+            while (resultSet.next()) {
+                String name = resultSet.getString("tag_name");
+                int tagId = resultSet.getInt("tag_id");
+                avaliableTags.add(new Tag(name, tagId));
+            }
+
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
+        }
+        return avaliableTags;
     }
 
     public List<Tag> getTags(TouristAttraction t) {
-        return t.getTags();
-    }
+        List<Tag> attractionTags = new ArrayList<>();
+        String sqlString = "SELECT touristattraction_tag.tag_id, tag.tag_name FROM touristattraction_tag, tag WHERE touristattraction_tag.tag_id = tag.tag_id AND touristattraction_tag.tourist_id = ?";
+        try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
+            PreparedStatement statement = con.prepareStatement(sqlString);
+            statement.setInt(1, t.getTourist_id());
+            ResultSet resultSet = statement.executeQuery();
 
-
-    public void updateAttraction(TouristAttraction updatedAttraction) {
-        for (TouristAttraction attraction : touristAttractions) {
-            if (attraction.getName().equals(updatedAttraction.getName())) {
-                attraction.setDescription(updatedAttraction.getDescription());
-                attraction.setCity(updatedAttraction.getCity());
-                attraction.setTags(updatedAttraction.getTags());
+            while (resultSet.next()) {
+                String tagName = resultSet.getString("tag_name");
+                int tagId = resultSet.getInt("tag_id");
+                attractionTags.add(new Tag(tagName, tagId));
             }
+
+        } catch (SQLException e) {
+            logger.error("SQL exception occurred", e);
         }
+        return attractionTags;
     }
+
+
+    public void updateAttraction(TouristAttractionTagDTO dto) {
+        deleteDTOAttraction(dto.getTourist_id());
+        saveDTOAttraction(dto);
+    }
+    public void setDbUrl(String dbUrl) {
+        this.dbUrl = dbUrl;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    protected Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(dbUrl, username, password);
+    }
+
 }
