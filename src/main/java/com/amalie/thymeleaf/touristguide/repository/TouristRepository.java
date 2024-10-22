@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 import java.util.*;
 
-@Repository //annotation der fortæller spring, at denne klasse har ansvar for adgang til data
-public class TouristRepository {
+@Repository("REPOSITORY_JDBC") //annotation der fortæller spring, at denne klasse har ansvar for adgang til data
+public class TouristRepository implements ITouristRepository {
     private static final Logger logger = LoggerFactory.getLogger(TouristRepository.class);
     @Value("${spring.datasource.url}")
     private String dbUrl;
@@ -64,6 +64,7 @@ public class TouristRepository {
         return attractions;
     }
 
+    @Override
     public void saveDTOAttraction(TouristAttractionTagDTO t) {
 
         String sqlString = "INSERT INTO touristattraction(name, description, prisDollar, cityId) VALUES(?,?,?,?)";
@@ -131,6 +132,7 @@ public class TouristRepository {
         return dto;
     }
 
+    @Override
     public List<TouristAttraction> getAllAttractions() {
         List<TouristAttraction> attractions = new ArrayList<>();
         String sqlString = "SELECT * FROM touristattraction";
@@ -182,7 +184,7 @@ public class TouristRepository {
         return touristAttraction;
     }
 
-
+    @Override
     public void deleteDTOAttraction(int id) {
         String sqlStringTag = "DELETE FROM touristattraction_tag WHERE tourist_id = ?";
         String sqlString = "DELETE FROM touristattraction WHERE tourist_id = ?";
@@ -205,7 +207,7 @@ public class TouristRepository {
     public List<City> getCities() {
         List<City> cities = new ArrayList<>();
         String sqlString = "SELECT * FROM city";
-        System.out.println(dbUrl + " " + username + " "+ password);
+        System.out.println(dbUrl + " " + username + " " + password);
         try (Connection con = DriverManager.getConnection(dbUrl.trim(), username.trim(), password.trim())) {
 
             Statement statement = con.createStatement();
@@ -263,7 +265,7 @@ public class TouristRepository {
         return attractionTags;
     }
 
-
+    @Override
     public void updateAttraction(TouristAttractionTagDTO dto) {
         deleteDTOAttraction(dto.getTourist_id());
         saveDTOAttraction(dto);

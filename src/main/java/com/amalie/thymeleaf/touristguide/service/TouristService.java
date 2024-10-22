@@ -4,7 +4,9 @@ import com.amalie.thymeleaf.touristguide.model.City;
 import com.amalie.thymeleaf.touristguide.model.Tag;
 import com.amalie.thymeleaf.touristguide.model.TouristAttraction;
 import com.amalie.thymeleaf.touristguide.model.TouristAttractionTagDTO;
-import com.amalie.thymeleaf.touristguide.repository.TouristRepository;
+import com.amalie.thymeleaf.touristguide.repository.ITouristRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -12,10 +14,10 @@ import java.util.List;
 @Service
 public class TouristService {
 
-    private final TouristRepository touristRepository;
+    private ITouristRepository touristRepository;
 
-    public TouristService(TouristRepository touristRepository) {
-        this.touristRepository=touristRepository;
+    public TouristService(ApplicationContext context, @Value("${tourist.repository.imp}") String impl) {
+        touristRepository = (ITouristRepository) context.getBean(impl);
     }
 
     public List<TouristAttractionTagDTO> getAllDTOAttractions() {
