@@ -6,6 +6,7 @@ import com.amalie.thymeleaf.touristguide.model.TouristAttraction;
 
 import com.amalie.thymeleaf.touristguide.model.TouristAttractionTagDTO;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import java.sql.*;
 import java.util.*;
 
 @Repository("REPOSITORY_JDBC") //annotation der fortæller spring, at denne klasse har ansvar for adgang til data
+@Lazy
 public class TouristRepository implements ITouristRepository {
     private static final Logger logger = LoggerFactory.getLogger(TouristRepository.class);
     @Value("${spring.datasource.url}")

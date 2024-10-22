@@ -37,4 +37,5 @@ public class TouristRepositoryTest {
         int foundLength = touristRepository.getAvaliableTags().size();
         assertEquals(3, foundLength);
     }
+
 }

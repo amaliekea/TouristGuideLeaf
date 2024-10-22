@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class TouristService {
 
-    private ITouristRepository touristRepository;
+    private final ITouristRepository touristRepository;
 
     public TouristService(ApplicationContext context, @Value("${tourist.repository.imp}") String impl) {
         touristRepository = (ITouristRepository) context.getBean(impl);
