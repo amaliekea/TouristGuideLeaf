@@ -17,6 +17,10 @@ public class TouristController {
     public TouristController(TouristService touristService) {
         this.touristService = touristService; //vi inistaniserer
     }
+    @GetMapping("/")
+    public String getAttractions() { // model bruger spring til at kommunikere med th
+        return "start";
+    }
 
     @GetMapping("/attractions")
     public String getAttractions(@RequestParam(defaultValue = "EUR") String valuta, Model model) { // model bruger spring til at kommunikere med th
