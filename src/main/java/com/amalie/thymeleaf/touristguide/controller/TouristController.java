@@ -43,7 +43,6 @@ public class TouristController {
         model.addAttribute("tags", touristService.getTags(t));
         return "showTags";
     }
-
     @GetMapping("/add")
     public String addAttraction(Model model) {
         TouristAttractionTagDTO tagDTO = new TouristAttractionTagDTO();
